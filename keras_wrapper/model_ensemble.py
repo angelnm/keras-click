@@ -898,6 +898,7 @@ class InteractiveBeamSearchSampler:
                                        max_N=0,
                                        isles=None,
                                        valid_next_words=None,
+                                       excluded_words=None,
                                        idx2word=None):
         """
         Samples a sentence using the restrictions provided in fixed_words.
@@ -957,13 +958,19 @@ class InteractiveBeamSearchSampler:
         x = dict()
         for input_id in params['model_inputs']:
             x[input_id] = np.asarray([src_sentence])
+
+        if excluded_words==None:
+            excluded_words = self.excluded_words	
+        elif self.excluded_words!=None:
+            excluded_words += self.excluded_words
+
         samples, scores, alphas = interactive_beam_search(self,
                                                           x,
                                                           params,
                                                           return_alphas=self.return_alphas,
                                                           model_ensemble=True,
                                                           n_models=len(self.models),
-                                                          excluded_words=self.excluded_words,
+                                                          excluded_words=excluded_words,
                                                           fixed_words=fixed_words,
                                                           max_N=max_N,
                                                           isles=isles,

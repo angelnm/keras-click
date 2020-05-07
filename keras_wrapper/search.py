@@ -238,6 +238,7 @@ def interactive_beam_search(model, X, params, return_alphas=False, model_ensembl
     :param max_N: Maximum number of words to generate between two isles.
     :param isles: Isles fixed by the user. List of (isle_index, [words]) (Although isle_index is never used
     :param valid_next_words: List of candidate words to be the next one to generate (after generating fixed_words)
+    :param excluded_words: List of excluded words to be the next one
     :param eos_sym: End-of-sentence index
     :param idx2word:  Mapping between indices and words
     :param null_sym: <null> symbol
@@ -346,6 +347,9 @@ def interactive_beam_search(model, X, params, return_alphas=False, model_ensembl
                 next_word_antiprefix = [idx for idx in idx2word.keys() if idx not in valid_next_words]
                 log_probs[:, next_word_antiprefix] = -cp.inf
             log_probs[:, eos_sym] = -cp.inf
+
+        if excluded_words is not None and ii == len_fixed_words:
+            log_probs[:, excluded_words] = -cp.inf
 
         if len(unfixed_isles) == 0 or ii in fixed_words:  # There are no remaining isles. Regular decoding.
             # If word is fixed, we only consider this hypothesis
