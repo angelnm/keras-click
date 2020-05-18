@@ -351,8 +351,12 @@ def interactive_beam_search(model, X, params, return_alphas=False, model_ensembl
         if excluded_words is not None and ii in excluded_words:
             # Cogemos el diccionario de palabras excluidas de esa posicion en especifico
             excluded = excluded_words[ii]
+            
             # Vamos a tratar cada una de las hipotesis por separado
             for idx, p in enumerate(log_probs):
+                if -1 in excluded:
+                    log_probs[idx][excluded[-1]] = -cp.inf
+
                 # Comprobamos si la ultima palabra de la hipotesis esta en el diccionario
                 last_word = state_below[i][-1]
                 if last_word in excluded:
