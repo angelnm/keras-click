@@ -348,8 +348,15 @@ def interactive_beam_search(model, X, params, return_alphas=False, model_ensembl
                 log_probs[:, next_word_antiprefix] = -cp.inf
             log_probs[:, eos_sym] = -cp.inf
 
-        if excluded_words is not None and ii == len_fixed_words:
-            log_probs[:, excluded_words] = -cp.inf
+        if excluded_words is not None and ii in excluded_words:
+            # Cogemos el diccionario de palabras excluidas de esa posicion en especifico
+            excluded = excluded_words[ii]
+            # Vamos a tratar cada una de las hipotesis por separado
+            for idx, p in enumerate(log_probs):
+                # Comprobamos si la ultima palabra de la hipotesis esta en el diccionario
+                last_word = state_below[i][-1]
+                if last_word in excluded:
+                    log_probs[idx][excluded[last_word]] = -cp.inf
 
         if len(unfixed_isles) == 0 or ii in fixed_words:  # There are no remaining isles. Regular decoding.
             # If word is fixed, we only consider this hypothesis
@@ -449,6 +456,7 @@ def interactive_beam_search(model, X, params, return_alphas=False, model_ensembl
                     for idx_vars in range(len(prev_out)):
                         prev_out[idx_vars] = prev_out[idx_vars][indices_alive]
 
+        # ======================================================================================================================
         else:  # We are in the middle of two isles
             forward_hyp_trans = [[]] * max_N
             forward_hyp_scores = [[]] * max_N
