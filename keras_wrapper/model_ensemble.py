@@ -959,10 +959,11 @@ class InteractiveBeamSearchSampler:
         for input_id in params['model_inputs']:
             x[input_id] = np.asarray([src_sentence])
 
-        if excluded_words==None:
-            excluded_words = self.excluded_words	
-        elif self.excluded_words!=None:
-            excluded_words += self.excluded_words
+        #if excluded_words==None:
+        #    excluded_words = self.excluded_words	
+        #elif self.excluded_words!=None:
+        #    excluded_words += self.excluded_words
+        
 
         samples, scores, alphas = interactive_beam_search(self,
                                                           x,
