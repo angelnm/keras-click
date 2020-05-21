@@ -358,7 +358,7 @@ def interactive_beam_search(model, X, params, return_alphas=False, model_ensembl
                     log_probs[idx][excluded[-1]] = -cp.inf
 
                 # Comprobamos si la ultima palabra de la hipotesis esta en el diccionario
-                last_word = state_below[i][-1]
+                last_word = state_below[idx][-1]
                 if last_word in excluded:
                     log_probs[idx][excluded[last_word]] = -cp.inf
 
