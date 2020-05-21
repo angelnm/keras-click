@@ -343,25 +343,31 @@ def interactive_beam_search(model, X, params, return_alphas=False, model_ensembl
 
         ###################################################################################
         # VALID NEXT WORDS
-        if valid_next_words is not None and ii in valid_next_words:
-            # Cogemos el diccionario de siguientes palabras
-            next_words = valid_next_words[ii]
-
+        if valid_next_words is not None and ii >= valid_next_words.keys()[0]:
+            used = False
             # Vamos a tratar cada una de las hipotesis por separado
             for idx, p in enumerate(log_probs):
-                valid = []
+                first_pos = valid_next_words.keys()[0]
+                c_father = valid_next_words[first_pos]
 
-                if -1 in next_words:
-                    valid += next_words[-1]
 
-                if ii > 0:
-                    last_word = state_below[idx][-1]
-                    if last_word in next_words:
-                        valid += next_words[last_word]
+                for i in range(first_pos, ii):
+                    if c_father.get(p[ii+i]) is None:
+                        c_father = None
+                        break
+                    else:
+                        c_father = c_father[p[ii+i]]
 
-                next_word_antiprefix = [idx for idx in idx2word.keys() if idx not in valid]
-                log_probs[idx][next_word_antiprefix] = -cp.inf
+                if c_father != None:
+                    valid = c_father.keys()
+
+                    if len(valid) != 0:
+                        used = True
+                        next_word_antiprefix = [idx for idx in idx2word.keys() if idx not in valid]
+                        log_probs[idx][next_word_antiprefix] = -cp.inf
             log_probs[:, eos_sym] = -cp.inf
+            if not used:
+                valid_next_words = None
         # VALID NEXT WORDS
         ###################################################################################
         # EXCLUDED WORDS
