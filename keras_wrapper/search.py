@@ -341,13 +341,30 @@ def interactive_beam_search(model, X, params, return_alphas=False, model_ensembl
         if len(unfixed_isles) > 0 or ii <= max_fixed_pos:
             log_probs[:, eos_sym] = -cp.inf
 
-        if valid_next_words is not None and ii == len_fixed_words:
-            # logger.log(3, 'valid_next_words: ' + str(valid_next_words))
-            if valid_next_words != dict():
-                next_word_antiprefix = [idx for idx in idx2word.keys() if idx not in valid_next_words]
-                log_probs[:, next_word_antiprefix] = -cp.inf
-            log_probs[:, eos_sym] = -cp.inf
+        ###################################################################################
+        # VALID NEXT WORDS
+        if valid_next_words is not None and ii in valid_next_words:
+            # Cogemos el diccionario de siguientes palabras
+            next_words = valid_next_words[ii]
 
+            # Vamos a tratar cada una de las hipotesis por separado
+            for idx, p in enumerate(log_probs):
+                valid = []
+
+                if -1 in next_words:
+                    valid += next_words[-1]
+
+                if ii > 0:
+                    last_word = state_below[idx][-1]
+                    if last_word in next_words:
+                        valid += next_words[last_word]
+
+                next_word_antiprefix = [idx for idx in idx2word.keys() if idx not in valid]
+                log_probs[idx][next_word_antiprefix] = -cp.inf
+            log_probs[:, eos_sym] = -cp.inf
+        # VALID NEXT WORDS
+        ###################################################################################
+        # EXCLUDED WORDS
         if excluded_words is not None and ii in excluded_words:
             # Cogemos el diccionario de palabras excluidas de esa posicion en especifico
             excluded = excluded_words[ii]
@@ -362,6 +379,8 @@ def interactive_beam_search(model, X, params, return_alphas=False, model_ensembl
                     last_word = state_below[idx][-1]
                     if last_word in excluded:
                         log_probs[idx][excluded[last_word]] = -cp.inf
+        # EXCLUDED WORDS
+        ###################################################################################
 
         if len(unfixed_isles) == 0 or ii in fixed_words:  # There are no remaining isles. Regular decoding.
             # If word is fixed, we only consider this hypothesis
