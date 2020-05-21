@@ -358,9 +358,10 @@ def interactive_beam_search(model, X, params, return_alphas=False, model_ensembl
                     log_probs[idx][excluded[-1]] = -cp.inf
 
                 # Comprobamos si la ultima palabra de la hipotesis esta en el diccionario
-                last_word = state_below[idx][-1]
-                if last_word in excluded:
-                    log_probs[idx][excluded[last_word]] = -cp.inf
+                if ii > 0:
+                    last_word = state_below[idx][-1]
+                    if last_word in excluded:
+                        log_probs[idx][excluded[last_word]] = -cp.inf
 
         if len(unfixed_isles) == 0 or ii in fixed_words:  # There are no remaining isles. Regular decoding.
             # If word is fixed, we only consider this hypothesis
