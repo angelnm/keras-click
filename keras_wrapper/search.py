@@ -315,6 +315,9 @@ def interactive_beam_search(model, X, params, return_alphas=False, model_ensembl
         # We need to generate at least the next partial word provided by the user
         minlen += 1
 
+    if valid_next_words is not None and len(valid_next_words.keys()) == 0:
+        valid_next_words = None
+
     while ii <= maxlen:
         # for every possible live sample calc prob for every possible label
         if params['optimized_search']:  # use optimized search model if available
@@ -343,23 +346,24 @@ def interactive_beam_search(model, X, params, return_alphas=False, model_ensembl
 
         ###################################################################################
         # VALID NEXT WORDS
-        if valid_next_words is not None and ii >= valid_next_words.keys()[0]:
+        if valid_next_words is not None and ii >= list(valid_next_words.keys())[0]:
             used = False
             # Vamos a tratar cada una de las hipotesis por separado
             for idx, p in enumerate(log_probs):
-                first_pos = valid_next_words.keys()[0]
+                first_pos = list(valid_next_words.keys())[0]
                 c_father = valid_next_words[first_pos]
 
 
                 for i in range(first_pos, ii):
-                    if c_father.get(p[ii+i]) is None:
+                    el = state_below[idx][i+1]
+                    if c_father.get(el) is None:
                         c_father = None
                         break
                     else:
-                        c_father = c_father[p[ii+i]]
+                        c_father = c_father[el]
 
                 if c_father != None:
-                    valid = c_father.keys()
+                    valid = list(c_father.keys())
 
                     if len(valid) != 0:
                         used = True
